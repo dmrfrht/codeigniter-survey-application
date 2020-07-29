@@ -1,0 +1,1 @@
+<script src="<?= base_url("assets") ?>/assets/js/bootstrap-tagsinput.js"></script>
