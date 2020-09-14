@@ -150,7 +150,7 @@
         </li>
 
         <li>
-          <a href="http://hobibank.com/">
+          <a href="http://anketofis.com/">
             <i class="menu-icon zmdi zmdi-view-web zmdi-hc-lg"></i>
             <span class="menu-text">Ana Sayfa</span>
           </a>

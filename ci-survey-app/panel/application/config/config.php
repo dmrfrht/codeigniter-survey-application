@@ -23,7 +23,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 | a PHP script and you can easily do that on your own.
 |
 */
-$config['base_url'] = 'http://hobibank.com/ci-survey-app/panel/';
+$config['base_url'] = 'https://www.anketofis.com/ci-survey-app/panel/';
 
 /*
 |--------------------------------------------------------------------------

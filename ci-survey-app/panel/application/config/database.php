@@ -76,9 +76,14 @@ $query_builder = TRUE;
 $db['default'] = array(
 	'dsn'	=> '',
 	'hostname' => 'localhost',
-	'username' => 'u9499102_qwert',
+
+  'username' => 'u9601598_qwert',
+  'password' => 'HzpQ$Yme7P2,',
+  'database' => 'u9601598_survey_app',
+
+	/*'username' => 'u9499102_qwert',
 	'password' => 'VZ7e8SG*rMT,',
-	'database' => 'u9499102_survey_app',
+	'database' => 'u9499102_survey_app',*/
 //  'username' => 'root',
 //  'password' => '',
 //  'database' => 'survey_app',

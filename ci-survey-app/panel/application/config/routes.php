@@ -61,4 +61,7 @@ $route["sifremi-sifirla"] = "userop/send_reset_password_mail";
 $route["sifre-sifirla"] = "userop/show_reset_password_display";
 $route["guncelle"] = "userop/update_password";
 
-$route['anket/(:any)/(:any)']= "surveys/aa/$1/$2";
+//$route['anket/(:any)/(:any)']= "surveys/aa/$1/$2";
+
+$route["privacy-policy"] = "privacyPolicy/index";
+$route["terms-conditions"] = "termsConditions/index";

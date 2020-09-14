@@ -1,11 +1,11 @@
 <div id="back-to-home">
-  <a href="http://hobibank.com" class="btn btn-outline btn-default">
+  <a href="http://www.anketofis.com" class="btn btn-outline btn-default">
     <i class="fa fa-home animated zoomIn"></i>
   </a>
 </div>
 <div class="simple-page-wrap">
   <div class="simple-page-logo animated swing">
-    <a href="http://hobibank.com">
+    <a href="http://anketofis.com">
       <span><i class="fa fa-gg"></i></span>
       <span>Survey App</span>
     </a>
@@ -65,7 +65,7 @@
       <i class="fa fa-google"></i> Google İle Giriş Yap
     </a>
 
-    <a href="" class="btn btn-purple btn-sm pull-right">
+    <a href="<?= $facebook_login  ?>" class="btn btn-purple btn-sm pull-right">
       <i class="fa fa-facebook"></i> Facebook İle Giriş Yap
     </a>
   </div>

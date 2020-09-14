@@ -11,13 +11,16 @@ class Userop extends CI_Controller
     $this->viewFolder = "users_v";
     $this->load->model("user_model");
     $this->load->model("google_login_model");
+    $this->load->model("facebook_login_model");
     $this->load->library('user_agent');
     include_once APPPATH . 'libraries/vendor/autoload.php';
+
+    $this->load->library('facebook');
 
     $this->google_client = new Google_Client();
     $this->google_client->setClientId("553294855715-mih83dndt847konpuckcjh9snsts0j0v.apps.googleusercontent.com");
     $this->google_client->setClientSecret("z0rR13t2yH72qDoDD0bw3KvS");
-    $this->google_client->setRedirectUri("http://hobibank.com/ci-survey-app/panel/userop/google_login");
+    $this->google_client->setRedirectUri("https://www.anketofis.com/ci-survey-app/panel/userop/google_login");
     $this->google_client->addScope("email");
     $this->google_client->addScope("profile");
   }
@@ -32,6 +35,8 @@ class Userop extends CI_Controller
     $viewData->viewFolder = $this->viewFolder;
     $viewData->subViewFolder = "login";
     $viewData->google_client = $this->google_client;
+    $viewData->facebook_login = $this->facebook->login_url();
+
     $this->load->view("{$viewData->viewFolder}/{$viewData->subViewFolder}/index", $viewData);
   }
 
@@ -374,6 +379,7 @@ class Userop extends CI_Controller
   {
     if ($_GET["code"]) {
       $token = $this->google_client->fetchAccessTokenWithAuthCode($_GET["code"]);
+
       if (!isset($token["error"])) {
         $this->google_client->setAccessToken($token['access_token']);
         $this->session->set_userdata('access_token', $token['access_token']);
@@ -490,7 +496,130 @@ class Userop extends CI_Controller
   /** Facebook Login Start */
   public function facebook_login()
   {
+    if ($_GET["code"]) {
+      if ($this->facebook->is_authenticated()) {
+        $access_token = $this->facebook->is_authenticated();
+        $fbUser = $this->facebook->request('get', '/me?fields=id,first_name,last_name,email,link,gender,picture');
 
+
+        $id = $fbUser["id"];
+        $name = $fbUser["first_name"];
+        $surname = $fbUser["last_name"];
+        $email = $fbUser["email"];
+
+/*        echo '<pre>';
+        echo 'ID: ' . $id . '<br>';
+        echo 'Name: ' . $name . '<br>';
+        echo 'Surname: ' . $surname . '<br>';
+        echo 'Email: ' . $email;*/
+     /*   echo 'Access Token: ' . $access_token . '<br>';
+        echo '<pre>';
+        print_r($fbUser);
+        die();*/
+
+        if ($this->facebook_login_model->Is_already_register($email)) {
+          //update data
+          $user_data = array(
+            'name' => $name,
+            'surname' => $surname,
+            'email' => $email,
+            "last_login_time" => date("Y-m-d H:i:s"),
+            "last_device_ip" => $this->input->ip_address(),
+            "browser" => $this->agent->browser(),
+            "browser_version" => $this->agent->version(),
+            "os" => $this->agent->platform(),
+            "device_type" => $_SERVER['HTTP_USER_AGENT'],
+            "ip_registration_first" => $this->input->ip_address()
+          );
+
+          $update = $this->facebook_login_model->Update_user_data($user_data, $email);
+
+          if ($update) {
+            // Session
+            $alert = array(
+              "title" => "İşlem başarılı",
+              "text" => "$name $surname Hoşgeldiniz",
+              "type" => "success"
+            );
+
+            /** Kullanıcı yetkilerini session a aktarıyoruz  */
+            setUserRoles();
+            /********************************  */
+
+            $user = $this->user_model->get(
+              array(
+                "email" => $email
+              )
+            );
+
+            $this->session->set_userdata("user", $user);
+            $this->session->set_flashdata("alert", $alert);
+            redirect(base_url());
+          } else {
+            // Hata
+            $alert = array(
+              "title" => "İşlem başarısız",
+              "text" => "Lütfen giriş bilgilerinizi kontrol ediniz",
+              "type" => "error"
+            );
+
+            $this->session->set_flashdata("alert", $alert);
+            redirect(base_url("login"));
+          }
+        } else {
+          //insert data
+          $user_data = array(
+            'login_oauth_uid' => $id,
+            'name' => $name,
+            'surname' => $surname,
+            'email' => $email,
+            "user_role" => '3',
+            "isActive" => true,
+            "last_device_ip" => $this->input->ip_address(),
+            "browser" => $this->agent->browser(),
+            "browser_version" => $this->agent->version(),
+            "os" => $this->agent->platform(),
+            "device_type" => $_SERVER['HTTP_USER_AGENT'],
+            "ip_registration_first" => $this->input->ip_address(),
+            "created_at" => date("Y-m-d H:i:s")
+          );
+
+          $insert = $this->facebook_login_model->Insert_user_data($user_data);
+
+          if ($insert) {
+            // Session
+            $alert = array(
+              "title" => "İşlem başarılı",
+              "text" => "$name $surname Hoşgeldiniz",
+              "type" => "success"
+            );
+
+            /** Kullanıcı yetkilerini session a aktarıyoruz  */
+            setUserRoles();
+            /********************************  */
+            $user = $this->user_model->get(
+              array(
+                "email" => $email
+              )
+            );
+
+            $this->session->set_userdata("user", $user);
+            $this->session->set_flashdata("alert", $alert);
+            redirect(base_url());
+          } else {
+            // Hata
+            $alert = array(
+              "title" => "İşlem başarısız",
+              "text" => "Lütfen giriş bilgilerinizi kontrol ediniz",
+              "type" => "error"
+            );
+
+            $this->session->set_flashdata("alert", $alert);
+            redirect(base_url("login"));
+          }
+        }
+      }
+    }
   }
   /** Facebook Login End */
 }
