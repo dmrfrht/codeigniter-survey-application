@@ -499,123 +499,114 @@ class Userop extends CI_Controller
     if ($_GET["code"]) {
       if ($this->facebook->is_authenticated()) {
         $access_token = $this->facebook->is_authenticated();
-        $fbUser = $this->facebook->request('get', '/me?fields=id,first_name,last_name,email,link,gender,picture');
+        if (!isset($access_token["error"])) {
+          $fbUser = $this->facebook->request('get', '/me?fields=id,first_name,last_name,email,link,gender,picture');
 
+          $id = $fbUser["id"];
+          $name = $fbUser["first_name"];
+          $surname = $fbUser["last_name"];
+          $email = $fbUser["email"];
 
-        $id = $fbUser["id"];
-        $name = $fbUser["first_name"];
-        $surname = $fbUser["last_name"];
-        $email = $fbUser["email"];
-
-/*        echo '<pre>';
-        echo 'ID: ' . $id . '<br>';
-        echo 'Name: ' . $name . '<br>';
-        echo 'Surname: ' . $surname . '<br>';
-        echo 'Email: ' . $email;*/
-     /*   echo 'Access Token: ' . $access_token . '<br>';
-        echo '<pre>';
-        print_r($fbUser);
-        die();*/
-
-        if ($this->facebook_login_model->Is_already_register($email)) {
-          //update data
-          $user_data = array(
-            'name' => $name,
-            'surname' => $surname,
-            'email' => $email,
-            "last_login_time" => date("Y-m-d H:i:s"),
-            "last_device_ip" => $this->input->ip_address(),
-            "browser" => $this->agent->browser(),
-            "browser_version" => $this->agent->version(),
-            "os" => $this->agent->platform(),
-            "device_type" => $_SERVER['HTTP_USER_AGENT'],
-            "ip_registration_first" => $this->input->ip_address()
-          );
-
-          $update = $this->facebook_login_model->Update_user_data($user_data, $email);
-
-          if ($update) {
-            // Session
-            $alert = array(
-              "title" => "İşlem başarılı",
-              "text" => "$name $surname Hoşgeldiniz",
-              "type" => "success"
+          if ($this->facebook_login_model->Is_already_register($email)) {
+            //update data
+            $user_data = array(
+              'name' => $name,
+              'surname' => $surname,
+              'email' => $email,
+              "last_login_time" => date("Y-m-d H:i:s"),
+              "last_device_ip" => $this->input->ip_address(),
+              "browser" => $this->agent->browser(),
+              "browser_version" => $this->agent->version(),
+              "os" => $this->agent->platform(),
+              "device_type" => $_SERVER['HTTP_USER_AGENT'],
+              "ip_registration_first" => $this->input->ip_address()
             );
 
-            /** Kullanıcı yetkilerini session a aktarıyoruz  */
-            setUserRoles();
-            /********************************  */
+            $update = $this->facebook_login_model->Update_user_data($user_data, $email);
 
-            $user = $this->user_model->get(
-              array(
-                "email" => $email
-              )
-            );
+            if ($update) {
+              // Session
+              $alert = array(
+                "title" => "İşlem başarılı",
+                "text" => "$name $surname Hoşgeldiniz",
+                "type" => "success"
+              );
 
-            $this->session->set_userdata("user", $user);
-            $this->session->set_flashdata("alert", $alert);
-            redirect(base_url());
+              /** Kullanıcı yetkilerini session a aktarıyoruz  */
+              setUserRoles();
+              /********************************  */
+
+              $user = $this->user_model->get(
+                array(
+                  "email" => $email
+                )
+              );
+
+              $this->session->set_userdata("user", $user);
+              $this->session->set_flashdata("alert", $alert);
+              redirect(base_url());
+            } else {
+              // Hata
+              $alert = array(
+                "title" => "İşlem başarısız",
+                "text" => "Lütfen giriş bilgilerinizi kontrol ediniz",
+                "type" => "error"
+              );
+
+              $this->session->set_flashdata("alert", $alert);
+              redirect(base_url("login"));
+            }
           } else {
-            // Hata
-            $alert = array(
-              "title" => "İşlem başarısız",
-              "text" => "Lütfen giriş bilgilerinizi kontrol ediniz",
-              "type" => "error"
+            //insert data
+            $user_data = array(
+              'login_oauth_uid' => $id,
+              'name' => $name,
+              'surname' => $surname,
+              'email' => $email,
+              "user_role" => '3',
+              "isActive" => true,
+              "last_device_ip" => $this->input->ip_address(),
+              "browser" => $this->agent->browser(),
+              "browser_version" => $this->agent->version(),
+              "os" => $this->agent->platform(),
+              "device_type" => $_SERVER['HTTP_USER_AGENT'],
+              "ip_registration_first" => $this->input->ip_address(),
+              "created_at" => date("Y-m-d H:i:s")
             );
 
-            $this->session->set_flashdata("alert", $alert);
-            redirect(base_url("login"));
-          }
-        } else {
-          //insert data
-          $user_data = array(
-            'login_oauth_uid' => $id,
-            'name' => $name,
-            'surname' => $surname,
-            'email' => $email,
-            "user_role" => '3',
-            "isActive" => true,
-            "last_device_ip" => $this->input->ip_address(),
-            "browser" => $this->agent->browser(),
-            "browser_version" => $this->agent->version(),
-            "os" => $this->agent->platform(),
-            "device_type" => $_SERVER['HTTP_USER_AGENT'],
-            "ip_registration_first" => $this->input->ip_address(),
-            "created_at" => date("Y-m-d H:i:s")
-          );
+            $insert = $this->facebook_login_model->Insert_user_data($user_data);
 
-          $insert = $this->facebook_login_model->Insert_user_data($user_data);
+            if ($insert) {
+              // Session
+              $alert = array(
+                "title" => "İşlem başarılı",
+                "text" => "$name $surname Hoşgeldiniz",
+                "type" => "success"
+              );
 
-          if ($insert) {
-            // Session
-            $alert = array(
-              "title" => "İşlem başarılı",
-              "text" => "$name $surname Hoşgeldiniz",
-              "type" => "success"
-            );
+              /** Kullanıcı yetkilerini session a aktarıyoruz  */
+              setUserRoles();
+              /********************************  */
+              $user = $this->user_model->get(
+                array(
+                  "email" => $email
+                )
+              );
 
-            /** Kullanıcı yetkilerini session a aktarıyoruz  */
-            setUserRoles();
-            /********************************  */
-            $user = $this->user_model->get(
-              array(
-                "email" => $email
-              )
-            );
+              $this->session->set_userdata("user", $user);
+              $this->session->set_flashdata("alert", $alert);
+              redirect(base_url());
+            } else {
+              // Hata
+              $alert = array(
+                "title" => "İşlem başarısız",
+                "text" => "Lütfen giriş bilgilerinizi kontrol ediniz",
+                "type" => "error"
+              );
 
-            $this->session->set_userdata("user", $user);
-            $this->session->set_flashdata("alert", $alert);
-            redirect(base_url());
-          } else {
-            // Hata
-            $alert = array(
-              "title" => "İşlem başarısız",
-              "text" => "Lütfen giriş bilgilerinizi kontrol ediniz",
-              "type" => "error"
-            );
-
-            $this->session->set_flashdata("alert", $alert);
-            redirect(base_url("login"));
+              $this->session->set_flashdata("alert", $alert);
+              redirect(base_url("login"));
+            }
           }
         }
       }
